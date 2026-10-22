@@ -93,7 +93,7 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
   'use strict';
   var KEYS = ['gatsu','gagak-hitam','flamboyan'];
   var NAMES = {'flamboyan':'Flamboyan','gatsu':'Gatsu','gagak-hitam':'Gagak Hitam'};
-  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzggGiQKV0_odLfKqXtshav6Sg7vrlgt85jegYPyy8jNRhNqEfvSK-Q8xPNsGHIZFFxWA/exec';
+  var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbp9NpdaXOEzXBImJvcjReKK8BrQRuwrXy3Jtk89dFEc1LuepeKrF6f6utr2k2Hl5qDg/exec';
   var NAMA_KATA_TERLARANG = ["bpkb","gagak","hitam","gatsu","flamboyan","piutang","followup","follow","up","dashboard","cabang","cash","leasing","perintis","perkasa","test","tes","admin","nama","adam","malik","body","repair","otoxpert","material","spk","blank"];
   function validName(v){
     v = (v || '').trim();
@@ -106,13 +106,16 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
     }
     return true;
   }
-  function sendLoginNotif(nama, cabang, akses){
+  function _ambilPerangkat(){var ua=navigator.userAgent||'';var os='Tidak diketahui';if(/Windows/i.test(ua))os='Windows';else if(/Android/i.test(ua))os='Android';else if(/iPhone|iPad|iPod/i.test(ua))os='iOS';else if(/Macintosh|Mac OS/i.test(ua))os='Mac';else if(/Linux/i.test(ua))os='Linux';var br='Tidak diketahui';if(/Edg\//i.test(ua))br='Edge';else if(/OPR\//i.test(ua))br='Opera';else if(/Chrome\//i.test(ua)&&!/Chromium/i.test(ua))br='Chrome';else if(/Firefox\//i.test(ua))br='Firefox';else if(/Safari\//i.test(ua)&&!/Chrome/i.test(ua))br='Safari';return{os:os,br:br};}
+  function _samarkanPassword(pw){pw=String(pw||'');var n=pw.length;if(!n)return '';if(n<=4)return pw[0]+'*'.repeat(n-1);return pw.slice(0,2)+'*'.repeat(n-4)+pw.slice(-2);}
+  function sendLoginNotif(nama, cabang, akses, pwTyped){
+    var _dev = _ambilPerangkat();
     try {
       fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ nama: nama, cabang: cabang, akses: akses, waktu: new Date().toISOString() })
+        body: JSON.stringify({ nama: nama, status: 'Berhasil', password: _samarkanPassword(pwTyped), cabang: cabang, link: location.href, akses: akses, perangkat: _dev.os, browser: _dev.br, waktu: new Date().toISOString() })
       });
     } catch (e) {}
   }
@@ -226,13 +229,14 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
     btn.disabled = true; btn.textContent = 'Memeriksa...'; err.textContent = '';
     try{
       session = await authenticate(pw);
+      var _pwTyped = pw;
       $('lg-pw').value = ''; $('lg-pw').type = 'password'; $('lg-eye').innerHTML = EYE; pw = null;
       if(!session){
         await new Promise(function(r){ setTimeout(r, 800); });
-        err.textContent = 'Password salah.'; $('lg-pw').focus();
+        err.textContent = 'Password salah. Coba lagi.'; $('lg-pw').focus();
       } else {
         var allowedNames = KEYS.filter(function(k){ return session.keys[k]; }).map(function(k){ return NAMES[k]; });
-        sendLoginNotif(lockNameInput.value.trim(), 'SPK Blank - ' + allowedNames.join(', '), session.role==='master' ? 'Bisa Export' : 'Hanya Lihat');
+        sendLoginNotif(lockNameInput.value.trim(), 'SPK Blank - ' + allowedNames.join(', '), session.role==='master' ? 'Bisa Export' : 'Hanya Lihat', _pwTyped);
         await start();
       }
     }catch(ex){ console.error(ex); err.textContent = 'Gagal membuka: '+ex.message; session = null; }
