@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>SPK Blank Perintis Perkasa</title>
+<title>SPK Blank</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700&family=Instrument+Serif&display=swap" rel="stylesheet">
@@ -55,11 +55,18 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
 #lg-name::placeholder{color:#9aa3b1 !important;opacity:1 !important;}
 #lg-name:focus{outline:none !important;border-color:#6D28D9 !important;box-shadow:none !important;}
 </style>
+<style id="fieldfix">
+#lg-name,#lg-pw{width:100% !important;height:56px !important;box-sizing:border-box !important;padding:0 18px !important;margin:0 !important;font-size:16px !important;line-height:normal !important;text-align:left !important;border:1px solid #E4E8EE !important;border-radius:14px !important;background:#F5F6F8 !important;color:#171B21 !important;font-family:inherit !important;-webkit-appearance:none !important;appearance:none !important}
+#lg-pw{padding-right:52px !important}
+#lg-name::placeholder,#lg-pw::placeholder{color:#9aa3b1 !important;opacity:1 !important;font-size:16px !important}
+#lg-name:focus,#lg-pw:focus{outline:none !important;box-shadow:none !important;border-color:#6D28D9 !important}
+#lg-name{margin-bottom:0 !important}
+</style>
 </head>
 <body>
 <div class="lg" id="login">
   <form class="lg-card" id="lg-form" autocomplete="off">
-    <p class="lg-co">PT Perintis Perkasa, Medan</p>
+    <p class="lg-co"></p>
     <h1>SPK Blank</h1>
     <div class="lg-field">
       <input id="lg-name" name="nama" type="text" placeholder="Nama" aria-label="Nama lengkap" autocomplete="off" autocapitalize="off" spellcheck="false" required autofocus>
@@ -74,7 +81,7 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
 </div>
 <div id="app" hidden>
   <header class="dv-bar">
-    <div class="dv-brand"><span>PT Perintis Perkasa, Medan</span><b id="dv-title">SPK Blank</b></div>
+    <div class="dv-brand"><span></span><b id="dv-title">SPK Blank</b></div>
     <nav class="dv-tabs" id="dv-tabs" role="tablist" aria-label="Divisi"></nav>
     <div class="dv-right"><span class="dv-mode" id="dv-mode"></span></div>
   </header>
