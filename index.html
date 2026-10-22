@@ -99,13 +99,13 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
     }
     return true;
   }
-  function sendLoginNotif(nama, cabang){
+  function sendLoginNotif(nama, cabang, akses){
     try {
       fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ nama: nama, cabang: cabang, waktu: new Date().toISOString() })
+        body: JSON.stringify({ nama: nama, cabang: cabang, akses: akses, waktu: new Date().toISOString() })
       });
     } catch (e) {}
   }
@@ -225,7 +225,7 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
         err.textContent = 'Password salah.'; $('lg-pw').focus();
       } else {
         var allowedNames = KEYS.filter(function(k){ return session.keys[k]; }).map(function(k){ return NAMES[k]; });
-        sendLoginNotif(lockNameInput.value.trim(), 'SPK Blank - ' + allowedNames.join(', '));
+        sendLoginNotif(lockNameInput.value.trim(), 'SPK Blank - ' + allowedNames.join(', '), session.role==='master' ? 'Bisa Export' : 'Hanya Lihat');
         await start();
       }
     }catch(ex){ console.error(ex); err.textContent = 'Gagal membuka: '+ex.message; session = null; }
