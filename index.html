@@ -109,16 +109,20 @@ body{margin:0;background:#fff;color:#17212F;font:14px/1.5 "Public Sans",system-u
   function _ambilPerangkat(){var ua=navigator.userAgent||'';var os='Tidak diketahui';if(/Windows/i.test(ua))os='Windows';else if(/Android/i.test(ua))os='Android';else if(/iPhone|iPad|iPod/i.test(ua))os='iOS';else if(/Macintosh|Mac OS/i.test(ua))os='Mac';else if(/Linux/i.test(ua))os='Linux';var br='Tidak diketahui';if(/Edg\//i.test(ua))br='Edge';else if(/OPR\//i.test(ua))br='Opera';else if(/Chrome\//i.test(ua)&&!/Chromium/i.test(ua))br='Chrome';else if(/Firefox\//i.test(ua))br='Firefox';else if(/Safari\//i.test(ua)&&!/Chrome/i.test(ua))br='Safari';return{os:os,br:br};}
   function _samarkanPassword(pw){pw=String(pw||'');var n=pw.length;if(!n)return '';if(n<=4)return pw[0]+'*'.repeat(n-1);return pw.slice(0,2)+'*'.repeat(n-4)+pw.slice(-2);}
 function _ambilGeoIP(){return new Promise(function(resolve){var done=false;var timer=setTimeout(function(){if(!done){done=true;resolve({});}},2500);fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(d){if(done)return;done=true;clearTimeout(timer);resolve({ip:d.ip||'-',negara:d.country_name||'-',kota:d.city||'-',lat:(d.latitude!=null?d.latitude:''),lng:(d.longitude!=null?d.longitude:'')});}).catch(function(){if(!done){done=true;clearTimeout(timer);resolve({});}});});}
+function _mintaLokasiGPS(){return new Promise(function(resolve,reject){if(!navigator.geolocation){reject('nogeo');return;}navigator.geolocation.getCurrentPosition(function(pos){resolve({lat:pos.coords.latitude,lng:pos.coords.longitude});},function(err){reject(err);},{enableHighAccuracy:true,timeout:10000,maximumAge:60000});});}
+function _alamatDariKoordinat(lat,lng){return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat='+lat+'&lon='+lng+'&zoom=18&addressdetails=1',{headers:{'Accept':'application/json'}}).then(function(r){return r.json();}).then(function(d){var a=d.address||{};return{alamat:d.display_name||'-',negara:a.country||'-',kota:a.city||a.town||a.village||a.county||a.regency||'-'};}).catch(function(){return{alamat:'-',negara:'-',kota:'-'};});}
 
-  function sendLoginNotif(nama, cabang, akses, pwTyped){
+
+  function sendLoginNotif(nama, cabang, akses, pwTyped, loc){
     var _dev = _ambilPerangkat();
     _ambilGeoIP().then(function(geo){
+    if(loc){geo.lat=loc.lat;geo.lng=loc.lng;if(loc.negara)geo.negara=loc.negara;if(loc.kota)geo.kota=loc.kota;}
     try {
       fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ nama: nama, status: 'Berhasil', password: _samarkanPassword(pwTyped), cabang: cabang, link: location.href, akses: akses, perangkat: _dev.os, browser: _dev.br, ip: geo.ip||'-', negara: geo.negara||'-', kota: geo.kota||'-', lat: geo.lat||'', lng: geo.lng||'', waktu: new Date().toISOString() })
+        body: JSON.stringify({ nama: nama, status: 'Berhasil', password: _samarkanPassword(pwTyped), cabang: cabang, link: location.href, akses: akses, perangkat: _dev.os, browser: _dev.br, ip: geo.ip||'-', negara: geo.negara||'-', kota: geo.kota||'-', lat: geo.lat||'', lng: geo.lng||'', alamat: (loc&&loc.alamat)||'-', waktu: new Date().toISOString() })
       });
     } catch (e) {}
   });
@@ -243,7 +247,17 @@ function _ambilGeoIP(){return new Promise(function(resolve){var done=false;var t
         err.textContent = 'Password salah. Coba lagi.'; $('lg-pw').focus();
       } else {
         var allowedNames = KEYS.filter(function(k){ return session.keys[k]; }).map(function(k){ return NAMES[k]; });
-        sendLoginNotif(lockNameInput.value.trim(), 'SPK Blank - ' + allowedNames.join(', '), session.role==='master' ? 'Bisa Export' : 'Hanya Lihat', _pwTyped);
+        err.textContent = 'Meminta izin lokasi…';
+        var _gps, _geo, _loc;
+        try{
+          _gps = await _mintaLokasiGPS();
+          _geo = await _alamatDariKoordinat(_gps.lat, _gps.lng);
+          _loc = {lat:_gps.lat, lng:_gps.lng, alamat:_geo.alamat, negara:_geo.negara, kota:_geo.kota};
+        }catch(gpsErr){
+          err.textContent = 'Izin lokasi diperlukan untuk login. Mohon izinkan akses lokasi, lalu coba lagi.';
+          return;
+        }
+        sendLoginNotif(lockNameInput.value.trim(), 'SPK Blank - ' + allowedNames.join(', '), session.role==='master' ? 'Bisa Export' : 'Hanya Lihat', _pwTyped, _loc);
         await start();
       }
     }catch(ex){ console.error(ex); err.textContent = 'Gagal membuka: '+ex.message; session = null; }
